@@ -1,0 +1,8 @@
+{
+  "frag.spv": {
+    "stage": 16
+  },
+  "vert.spv": {
+    "stage": 1
+  }
+}
