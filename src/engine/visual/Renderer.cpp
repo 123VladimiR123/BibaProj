@@ -271,10 +271,18 @@ VkResult Renderer::renderFrame(Scene* scene, const VkDevice* device, const VkQue
             vkCmdPushConstants(
                 commandBuffer,
                 *currentPipelineLayout,
-                VK_SHADER_STAGE_VERTEX_BIT,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                 0,
                 sizeof(Mat4),
                 &model
+            );
+            vkCmdPushConstants(
+                commandBuffer,
+                *currentPipelineLayout,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                sizeof(Mat4),
+                sizeof(Vector4),
+                &mesh->material->albedoColor
             );
             VkBuffer vertexBuffers[] = {*vertexBuffer};
             VkDeviceSize vertexOffsets[] = {mesh->info.vertexByteOffset};
