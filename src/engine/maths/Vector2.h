@@ -25,6 +25,11 @@ struct Vector2 {
         return {x / scalar, y / scalar};
     }
 
+    bool operator==(const Vector2& other) const
+    {
+        return x == other.x && y == other.y;
+    }
+
     // todo intrisicts
     Vector2& operator+=(const Vector2& other) {
         x += other.x; y += other.y;

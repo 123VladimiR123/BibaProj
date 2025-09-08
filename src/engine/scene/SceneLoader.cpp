@@ -125,217 +125,126 @@ std::vector<std::shared_ptr<Texture>> SceneLoader::parseTextures(const tinygltf:
     return textures;
 }
 
-
-float safeNormalizedSigned(int32_t val, int32_t maxVal) {
-    if (val == -maxVal) return -1.0f;
-    return static_cast<float>(val) / static_cast<float>(maxVal);
-}
-
-std::vector<float> SceneLoader::getFloatData(const tinygltf::Model& model, const int accessorIdx) {
-    const auto& accessor = model.accessors[accessorIdx];
-    const auto& bufferView = model.bufferViews[accessor.bufferView];
-    const auto& buffer = model.buffers[bufferView.buffer];
-
-    const unsigned char* dataPtr = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
-
-    size_t elementSize = 0;
-    switch (accessor.type) {
-        case TINYGLTF_TYPE_SCALAR: elementSize = 1; break;
-        case TINYGLTF_TYPE_VEC2: elementSize = 2; break;
-        case TINYGLTF_TYPE_VEC3: elementSize = 3; break;
-        case TINYGLTF_TYPE_VEC4: elementSize = 4; break;
-        default:
-            throw std::runtime_error("Unsupported accessor type");
-    }
-
-    std::vector<float> result(accessor.count * elementSize);
-
-    size_t componentSize = 0;
-    switch (accessor.componentType) {
-        case TINYGLTF_COMPONENT_TYPE_BYTE:
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: componentSize = 1; break;
-        case TINYGLTF_COMPONENT_TYPE_SHORT:
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: componentSize = 2; break;
-        case TINYGLTF_COMPONENT_TYPE_INT:
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: componentSize = 4; break;
-        case TINYGLTF_COMPONENT_TYPE_FLOAT: componentSize = 4; break;
-        default: throw std::runtime_error("Unknown componentType");
-    }
-
-    size_t stride = bufferView.byteStride ? bufferView.byteStride : componentSize * elementSize;
-    const unsigned char* ptr = dataPtr;
-
-    for (size_t i = 0; i < accessor.count; ++i) {
-        for (size_t j = 0; j < elementSize; ++j) {
-            switch (accessor.componentType) {
-                case TINYGLTF_COMPONENT_TYPE_BYTE: {
-                    int8_t val = *reinterpret_cast<const int8_t*>(ptr + j * componentSize);
-                    result[i * elementSize + j] = accessor.normalized ? safeNormalizedSigned(val, 127) : float(val);
-                    break;
-                }
-                case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
-                    uint8_t val = *(ptr + j * componentSize);
-                    result[i * elementSize + j] = accessor.normalized ? float(val) / 255.0f : float(val);
-                    break;
-                }
-                case TINYGLTF_COMPONENT_TYPE_SHORT: {
-                    int16_t val = *reinterpret_cast<const int16_t*>(ptr + j * componentSize);
-                    result[i * elementSize + j] = accessor.normalized ? safeNormalizedSigned(val, 32767) : float(val);
-                    break;
-                }
-                case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
-                    uint16_t val = *reinterpret_cast<const uint16_t*>(ptr + j * componentSize);
-                    result[i * elementSize + j] = accessor.normalized ? float(val) / 65535.0f : float(val);
-                    break;
-                }
-                case TINYGLTF_COMPONENT_TYPE_INT: {
-                    int32_t val = *reinterpret_cast<const int32_t*>(ptr + j * componentSize);
-                    result[i * elementSize + j] = accessor.normalized ? safeNormalizedSigned(val, 2147483647) : float(val);
-                    break;
-                }
-                case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: {
-                    uint32_t val = *reinterpret_cast<const uint32_t*>(ptr + j * componentSize);
-                    result[i * elementSize + j] = accessor.normalized ? float(val) / 4294967295.0f : float(val);
-                    break;
-                }
-                case TINYGLTF_COMPONENT_TYPE_FLOAT: {
-                    float val = *reinterpret_cast<const float*>(ptr + j * componentSize);
-                    result[i * elementSize + j] = val;
-                    break;
-                }
-                default: throw std::runtime_error("Unknown componentType");
-            }
-        }
-        ptr += stride;
-    }
-
-    return result;
-}
-
-std::vector<Vertex> SceneLoader::parseMeshPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& prim)
+void SceneLoader::parseVerticesAndIndices(
+    const tinygltf::Model& model,
+    const tinygltf::Primitive& prim,
+    std::vector<Vertex>& vertices,
+    std::vector<uint32_t>& indices)
 {
-    size_t vertexCount = 0;
-    if (prim.attributes.contains("POSITION"))
-        vertexCount = model.accessors[prim.attributes.at("POSITION")].count;
+    if (!prim.attributes.contains("POSITION"))
+        throw std::runtime_error("Primitive does not contain positions");
 
-    std::vector<Vertex> vertices(vertexCount);
+    const auto& posAccessor = model.accessors[prim.attributes.at("POSITION")];
+    const auto& posBufView = model.bufferViews[posAccessor.bufferView];
+    const auto& posBuf = model.buffers[posBufView.buffer];
+    const auto* positions = reinterpret_cast<const float*>(&posBuf.data[posBufView.byteOffset + posAccessor.byteOffset]);
 
-    if (prim.attributes.contains("POSITION"))
-    {
-        const std::vector<float> data = getFloatData(model, prim.attributes.at("POSITION"));
-        for (size_t i = 0; i < vertexCount; ++i)
+    std::function<Vector3(uint32_t)> getNormal;
+    std::function<Tangent4(uint32_t)> getTangent;
+    std::function<Vector2(uint32_t)> getTextCoord;
+
+    if (!prim.attributes.contains("NORMAL"))
+        getNormal = [](uint32_t idx) {return Vector3(0, 0, 1);};
+    else
+        getNormal = [model, prim](uint32_t idx)
         {
-            vertices[i].position = {data[i * 3 + 0], data[i * 3 + 1], data[i * 3 + 2]};
-        }
-    }
-
-    if (prim.attributes.contains("NORMAL"))
-    {
-        const std::vector<float> data = getFloatData(model, prim.attributes.at("NORMAL"));
-        for (size_t i = 0; i < vertexCount; ++i)
-        {
-            vertices[i].normal = {data[i * 3 + 0], data[i * 3 + 1], data[i * 3 + 2]};
-        }
-    }
-
-    if (prim.attributes.contains("TANGENT"))
-    {
-        const std::vector<float> data = getFloatData(model, prim.attributes.at("TANGENT"));
-        for (size_t i = 0; i < vertexCount; ++i)
-        {
-            vertices[i].tangent = {data[i * 4 + 0], data[i * 4 + 1], data[i * 4 + 2], data[i * 4 + 3]};
-        }
-    }
-
-    if (prim.attributes.contains("TEXCOORD_0"))
-    {
-        const std::vector<float> data = getFloatData(model, prim.attributes.at("TEXCOORD_0"));
-        for (size_t i = 0; i < vertexCount; ++i)
-        {
-            vertices[i].uv = {data[i * 2 + 0], data[i * 2 + 1]};
-        }
-    }
-
-    for (size_t i = 0; i < vertexCount; ++i)
-    {
-        auto& v = vertices[i];
-
-        v.bitangent = {
-            v.normal.y * v.tangent.z - v.normal.z * v.tangent.y,
-            v.normal.z * v.tangent.x - v.normal.x * v.tangent.z,
-            v.normal.x * v.tangent.y - v.normal.y * v.tangent.x
+            const auto& acc = model.accessors[prim.attributes.at("POSITION")];
+            const auto& view = model.bufferViews[acc.bufferView];
+            const auto& buf = model.buffers[view.buffer];
+            const auto* norms = reinterpret_cast<const float*>(&buf.data[view.byteOffset + acc.byteOffset]);
+            return Vector3(norms[idx * 3], norms[idx * 3 + 1], norms[idx * 3 + 2]);
         };
 
-        v.bitangent.x *= v.tangent.w;
-        v.bitangent.y *= v.tangent.w;
-        v.bitangent.z *= v.tangent.w;
-    }
-
-    return vertices;
-}
-
-std::vector<uint32_t> SceneLoader::parseMeshIndices(const tinygltf::Model& model, const tinygltf::Primitive& prim)
-{
-    std::vector<uint32_t> indices;
-
-    if (prim.indices < 0)
-    {
-        if (prim.attributes.contains("POSITION"))
+    if (!prim.attributes.contains("TANGENT"))
+        getTangent = [](uint32_t idx) {return Tangent4(1, 0, 0, 1);};
+    else
+        getTangent = [model, prim](uint32_t idx)
         {
-            const auto& accessor = model.accessors[prim.attributes.at("POSITION")];
-            indices.resize(accessor.count);
-            for (size_t i = 0; i < accessor.count; ++i)
-                indices[i] = static_cast<uint32_t>(i);
-        }
-        return indices;
-    }
+            const auto& acc = model.accessors[prim.attributes.at("TANGENT")];
+            const auto& view = model.bufferViews[acc.bufferView];
+            const auto& buf = model.buffers[view.buffer];
+            const auto* tan = reinterpret_cast<const float*>(&buf.data[view.byteOffset + acc.byteOffset]);
+            return Tangent4(tan[idx * 4], tan[idx * 4 + 1], tan[idx * 4 + 2], tan[idx * 4 + 3]);
+        };
 
-    const auto& accessor = model.accessors[prim.indices];
-    const auto& bufferView = model.bufferViews[accessor.bufferView];
-    const auto& buffer = model.buffers[bufferView.buffer];
-
-    const unsigned char* basePtr = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
-    const size_t indexCount = accessor.count;
-    indices.resize(indexCount);
-
-    const size_t stride = bufferView.byteStride ? bufferView.byteStride :
-                          (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? 1 :
-                           accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? 2 : 4);
-
-    for (size_t i = 0; i < indexCount; ++i)
-    {
-        const unsigned char* ptr = basePtr + i * stride;
-        switch (accessor.componentType)
+    if (!prim.attributes.contains("TEXCOORD_0"))
+        getTextCoord = [](uint32_t idx) {return Vector2(0, 0);};
+    else if (model.accessors[prim.attributes.at("TEXCOORD_0")].componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+        getTextCoord = [model, prim](uint32_t idx)
         {
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-            {
-                uint8_t val;
-                memcpy(&val, ptr, sizeof(val));
-                indices[i] = static_cast<uint32_t>(val);
-                break;
-            }
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-            {
-                uint16_t val;
-                memcpy(&val, ptr, sizeof(val));
-                indices[i] = static_cast<uint32_t>(val);
-                break;
-            }
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-            {
-                uint32_t val;
-                memcpy(&val, ptr, sizeof(val));
-                indices[i] = val;
-                break;
-            }
-            default:
-                throw std::runtime_error("Unsupported index component type in glTF");
-        }
+            const auto& acc = model.accessors[prim.attributes.at("TEXCOORD_0")];
+            const auto& view = model.bufferViews[acc.bufferView];
+            const auto& buf = model.buffers[view.buffer];
+            const auto* tex = &buf.data[view.byteOffset + acc.byteOffset];
+            return Vector2(tex[idx * 2], tex[idx * 2 + 1]);
+        };
+    else if (model.accessors[prim.attributes.at("TEXCOORD_0")].componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+        getTextCoord = [model, prim](uint32_t idx)
+        {
+            const auto& acc = model.accessors[prim.attributes.at("TEXCOORD_0")];
+            const auto& view = model.bufferViews[acc.bufferView];
+            const auto& buf = model.buffers[view.buffer];
+            const auto* tex = reinterpret_cast<const unsigned short*>(&buf.data[view.byteOffset + acc.byteOffset]);
+            return Vector2(tex[idx * 2], tex[idx * 2 + 1]);
+        };
+    else
+        getTextCoord = [model, prim](uint32_t idx)
+        {
+            const auto& acc = model.accessors[prim.attributes.at("TEXCOORD_0")];
+            const auto& view = model.bufferViews[acc.bufferView];
+            const auto& buf = model.buffers[view.buffer];
+            const auto* tex = reinterpret_cast<const float*>(&buf.data[view.byteOffset + acc.byteOffset]);
+            return Vector2(tex[idx * 2], tex[idx * 2 + 1]);
+        };
+
+    vertices.clear();
+    vertices.resize(posAccessor.count);
+    for (uint32_t i = 0; i < posAccessor.count; i++)
+    {
+        Vertex v;
+        v.position = Vector3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+        v.normal = getNormal(i);
+        v.tangent = getTangent(i);
+        v.uv = getTextCoord(i);
+
+        v.bitangent = v.normal.cross(Vector3(v.tangent.x, v.tangent.y, v.tangent.z));
+        v.bitangent = v.bitangent * v.tangent.w;
+
+        vertices[i] = v;
     }
 
-    return indices;
-}
+    if (prim.indices >= 0)
+    {
+        const auto& indAcc = model.accessors[prim.indices];
+        const auto& indView = model.bufferViews[indAcc.bufferView];
+        const auto& indBuf = model.buffers[indView.buffer];
 
+        indices.clear();
+        indices.resize(indAcc.count);
+
+        if (indAcc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+        {
+            const auto* tex = &indBuf.data[indView.byteOffset + indAcc.byteOffset];
+            for (uint32_t i = 0; i < indAcc.count; i++)
+                indices[i] = static_cast<unsigned char>(tex[i]);
+        } else if (indAcc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+        {
+            const auto* tex = reinterpret_cast<const unsigned short*>(&indBuf.data[indView.byteOffset + indAcc.byteOffset]);
+            for (uint32_t i = 0; i < indAcc.count; i++)
+                indices[i] = tex[i];
+        } else
+        {
+            const auto* tex = reinterpret_cast<const uint32_t*>(&indBuf.data[indView.byteOffset + indAcc.byteOffset]);
+            for (uint32_t i = 0; i < indAcc.count; i++)
+                indices[i] = tex[i];
+        }
+    } else
+    {
+        indices.resize(posAccessor.count);
+        for (uint32_t i = 0; i < posAccessor.count; i++)
+            indices[i] = i;
+    }
+}
 
 std::vector<std::shared_ptr<Material>> SceneLoader::parseMaterials(
     const tinygltf::Model* model,
@@ -454,8 +363,7 @@ void SceneLoader::parseGameObjects(
         for (const auto& prim : mesh.primitives)
         {
             auto currentMesh = std::make_shared<MeshPrimitive>();
-            currentMesh->vertices = parseMeshPrimitive(*model, prim);
-            currentMesh->indices = parseMeshIndices(*model, prim);
+            parseVerticesAndIndices(*model, prim, currentMesh->vertices, currentMesh->indices);
             if (0 <= prim.material && prim.material < materials.size())
                 currentMesh->material = materials[prim.material];
             else

@@ -16,17 +16,18 @@ Quat rot {std::array{
 
 void rotationThread(Scene* scene, Quat rot) {
     while (keepRunning) {
-        // scene->gameObjsRoot[0]->transform->rotate(rot);
+        scene->gameObjsRoot[0]->transform->rotate(rot);
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
 int main() {
-    testRun();
+    // testRun();
     VulkanLifeCycle app{};
 
     auto container = new SceneContainter();
-    SceneLoader::loadByDir("donut", container);
+    // SceneLoader::loadByDir("donut", container);
+    SceneLoader::loadByDir("boombox-camera", container);
 
     app.fillSceneWithVulkan(container->scenes[0].get());
 

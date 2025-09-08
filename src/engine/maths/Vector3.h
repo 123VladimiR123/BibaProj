@@ -35,6 +35,11 @@ struct Vector3 {
         return *this;
     }
 
+    bool operator==(const Vector3& other) const
+    {
+        return x == other.x && y == other.y && z == other.z;
+    }
+
     //toDo intrisicts
     [[nodiscard]] float length() const {
         return std::sqrt(x * x + y * y + z * z);
