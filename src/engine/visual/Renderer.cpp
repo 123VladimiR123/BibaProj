@@ -286,8 +286,8 @@ VkResult Renderer::renderFrame(Scene* scene, const VkDevice* device, const VkQue
                 commandBuffer,
                 mesh->info.indexCount,
                 1,
-                mesh->info.firstIndex,
-                mesh->info.vertexOffset,
+                0,
+                0,
                 0
             );
         }

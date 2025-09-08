@@ -67,34 +67,34 @@ MeshBufferManager::MeshBufferManager(const std::vector<std::shared_ptr<MeshPrimi
     void* indexData;
     vkMapMemory(*device, indexMemTemp, 0, totalIndexSize, 0, &indexData);
 
-    VkDeviceSize currentVertexOffset = 0;
-    VkDeviceSize currentIndexOffset = 0;
+    VkDeviceSize vertexByteOffset = 0;
+    VkDeviceSize indexByteOffset = 0;
 
-    uint32_t currentVertexIndexOffset = 0;
-    uint32_t currentIndexIndexOffset = 0;
+    uint32_t vertexObjOffset = 0;
+    uint32_t indexObjOffset = 0;
     for (const auto& mesh: allMeshes) {
-        memcpy(static_cast<char*>(vertexData) + currentVertexOffset, mesh->vertices.data(),
+        memcpy(static_cast<char*>(vertexData) + vertexByteOffset, mesh->vertices.data(),
                sizeof(Vertex) * mesh->vertices.size());
-        memcpy(static_cast<char*>(indexData) + currentIndexOffset, mesh->indices.data(),
+        memcpy(static_cast<char*>(indexData) + indexByteOffset, mesh->indices.data(),
                sizeof(uint32_t) * mesh->indices.size());
 
         MeshBufferInfo info{};
         info.vertexCount = static_cast<uint32_t>(mesh->vertices.size());
         info.indexCount = static_cast<uint32_t>(mesh->indices.size());
 
-        info.vertexByteOffset = currentVertexOffset;
-        info.indexByteOffset = currentIndexOffset;
+        info.vertexByteOffset = vertexByteOffset;
+        info.indexByteOffset = indexByteOffset;
 
-        info.firstIndex = currentIndexIndexOffset;
-        info.vertexOffset = static_cast<int32_t>(currentVertexIndexOffset);
+        info.firstIndex = indexObjOffset;
+        info.vertexOffset = static_cast<int32_t>(vertexObjOffset);
 
         mesh->info = info;
 
-        currentVertexOffset += sizeof(Vertex) * mesh->vertices.size();
-        currentIndexOffset += sizeof(uint32_t) * mesh->indices.size();
+        vertexByteOffset += sizeof(Vertex) * mesh->vertices.size();
+        indexByteOffset += sizeof(uint32_t) * mesh->indices.size();
 
-        currentVertexIndexOffset += static_cast<uint32_t>(mesh->vertices.size());
-        currentIndexIndexOffset += static_cast<uint32_t>(mesh->indices.size());
+        vertexObjOffset += static_cast<uint32_t>(mesh->vertices.size());
+        indexObjOffset += static_cast<uint32_t>(mesh->indices.size());
     }
     vkUnmapMemory(*device, vertexMemTemp);
     vkUnmapMemory(*device, indexMemTemp);
