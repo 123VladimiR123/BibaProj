@@ -37,7 +37,7 @@ DeviceWrap::DeviceWrap(VkSurfaceKHR* surface, VkPhysicalDevice* physicalDevice, 
     createInfo.enabledExtensionCount = 1;
     createInfo.pEnabledFeatures = &features;
 
-    const char* exts[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    const char* exts[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME};
     createInfo.ppEnabledExtensionNames = exts;
 
     if (vkCreateDevice(*physicalDevice, &createInfo, nullptr, &device) == VK_SUCCESS)

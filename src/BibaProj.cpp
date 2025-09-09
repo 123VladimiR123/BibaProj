@@ -15,11 +15,11 @@ Quat rot {std::array{
 }.data()};
 
 int main() {
-    // testRun();
+    testRun();
     VulkanLifeCycle app{};
 
     auto container = new SceneContainter();
-    // SceneLoader::loadByDir("donut", container);
+    // SceneLoader::loadByDir("boombox", container);
     SceneLoader::loadByDir("donut", container);
 
     app.fillSceneWithVulkan(container->scenes[0].get());
@@ -29,7 +29,7 @@ int main() {
         app.render(container->scenes[0].get());
         container->scenes[0]->gameObjsRoot[0]->transform->rotate(rot);
         glfwPollEvents();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000/165));
     }
 
     app.closeScene(container->scenes[0].get());

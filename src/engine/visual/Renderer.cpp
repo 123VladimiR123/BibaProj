@@ -11,6 +11,7 @@
 #include "../gameobj/camera/Camera.h"
 #include "util/BufferUtil.h"
 #include "./../util/Logger.h"
+#include "GLFW/glfw3.h"
 #include "util/UniformBufferObject.h"
 
 Renderer::Renderer(const VkDevice* device, const VkPhysicalDevice* physicalDevice, const VkCommandPool* commandPool,
@@ -206,9 +207,13 @@ void printMat4(Mat4* mat)
 VkResult Renderer::renderFrame(Scene* scene, const VkDevice* device, const VkQueue* graphicsQueue,
                            const VkQueue* presentQueue,
                            const VkSwapchainKHR* swapChain, const VkRenderPass* renderPass, const size_t currentFrame,
-                           const VkExtent2D* extent, const VkBuffer* vertexBuffer, const VkBuffer* indexBuffer)
+                           const VkExtent2D* extent, const VkBuffer* vertexBuffer, const VkBuffer* indexBuffer,
+                           GLFWwindow* window)
 {
     vkWaitForFences(*device, 1, inFlightFences[currentFrame].get(), VK_TRUE, UINT64_MAX);
+
+    if (!glfwGetWindowAttrib(window, GLFW_VISIBLE))
+        return VK_SUCCESS;
 
     uint32_t imageIndex;
     const VkResult acquireImageRes = vkAcquireNextImageKHR(*device, *swapChain, UINT64_MAX, *imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE,

@@ -50,7 +50,8 @@ VulkanLifeCycle::VulkanLifeCycle()
     VulkanContext::reg(new WindowWrap());
     VulkanContext::reg(new SurfaceWrap(VulkanContext::instance()->get(), VulkanContext::window()->get()));
     VulkanContext::reg(new PhysicalDeviceWrap(VulkanContext::instance()->get()));
-    VulkanContext::reg(new DeviceWrap(VulkanContext::surface()->get(), VulkanContext::physicalDevice()->get(), VulkanContext::physicalDevice()->features));
+    VulkanContext::reg(new DeviceWrap(VulkanContext::surface()->get(), VulkanContext::physicalDevice()->get(),
+                                      VulkanContext::physicalDevice()->features));
     VulkanContext::reg(new QueueWrap(VulkanContext::device()->get(), VulkanContext::device()->getIndices()));
     VulkanContext::reg(new CommandPoolWrap(VulkanContext::device()->get(), VulkanContext::device()->getIndices()));
     makeSwapchainDepthBuffer();
@@ -106,7 +107,8 @@ void VulkanLifeCycle::fillSceneWithVulkan(Scene* scene)
                                           scene->renderPass.get(),
                                           VulkanContext::swapchainManager()->getSwapchainImages(),
                                           VulkanContext::depth()->imageView.get(),
-                                          VulkanContext::swapchain()->getExtent(), scene->descLayout.get(), scene->gameObjsFlat.size(),
+                                          VulkanContext::swapchain()->getExtent(), scene->descLayout.get(),
+                                          scene->gameObjsFlat.size(),
                                           scene->groupedMaterials.size(), scene->allMeshes.size());
 }
 
@@ -122,7 +124,8 @@ void VulkanLifeCycle::render(Scene* scene)
                                                size(),
                                                VulkanContext::swapchain()->getExtent(),
                                                scene->bufferManager->getVertexBuffer(),
-                                               scene->bufferManager->getIndexBuffer()
+                                               scene->bufferManager->getIndexBuffer(),
+                                               VulkanContext::window()->get()
     ); res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR)
     {
         vkDeviceWaitIdle(*VulkanContext::device()->get());
@@ -137,13 +140,16 @@ void VulkanLifeCycle::render(Scene* scene)
 
 void VulkanLifeCycle::closeScene(Scene* scene)
 {
-    for (const auto& mat: scene->allMaterials)
+    for (const auto& mat : scene->allMaterials)
     {
         if (mat->albedoTexture != nullptr && mat->albedoTexture->name == "DefaultTexture") mat->albedoTexture.reset();
-        if (mat->emissiveTexture != nullptr && mat->emissiveTexture->name == "DefaultTexture") mat->emissiveTexture.reset();
+        if (mat->emissiveTexture != nullptr && mat->emissiveTexture->name == "DefaultTexture") mat->emissiveTexture.
+            reset();
         if (mat->normalTexture != nullptr && mat->normalTexture->name == "DefaultTexture") mat->normalTexture.reset();
-        if (mat->occlusionTexture != nullptr && mat->occlusionTexture->name == "DefaultTexture") mat->occlusionTexture.reset();
-        if (mat->metallicRoughnessTexture != nullptr && mat->metallicRoughnessTexture->name == "DefaultTexture") mat->metallicRoughnessTexture.reset();
+        if (mat->occlusionTexture != nullptr && mat->occlusionTexture->name == "DefaultTexture") mat->occlusionTexture.
+            reset();
+        if (mat->metallicRoughnessTexture != nullptr && mat->metallicRoughnessTexture->name == "DefaultTexture") mat->
+            metallicRoughnessTexture.reset();
     }
     renderer->cleanup(VulkanContext::device()->get(), VulkanContext::commandPool()->getGraphics());
     ResourceFiller::resetVkDependencies(scene, VulkanContext::device()->get());

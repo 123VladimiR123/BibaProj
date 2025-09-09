@@ -9,6 +9,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "../scene/Scene.h"
+#include "GLFW/glfw3.h"
 
 class Renderer
 {
@@ -52,9 +53,9 @@ public:
     Renderer& operator=(Renderer&&) noexcept = default;
 
     VkResult renderFrame(Scene* scene, const VkDevice* device, const VkQueue* graphicsQueue,
-                               const VkQueue* presentQueue,
-                               const VkSwapchainKHR* swapChain, const VkRenderPass* renderPass, size_t currentFrame,
-                               const VkExtent2D* extent, const VkBuffer* vertexBuffer, const VkBuffer* indexBuffer);
+                         const VkQueue* presentQueue,
+                         const VkSwapchainKHR* swapChain, const VkRenderPass* renderPass, const size_t currentFrame,
+                         const VkExtent2D* extent, const VkBuffer* vertexBuffer, const VkBuffer* indexBuffer, GLFWwindow* window);
     void cleanup(const VkDevice* device, const VkCommandPool* pool);
 
     static VkDescriptorSetLayout* makeUboLayout(VkDevice *device);
