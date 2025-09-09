@@ -13,6 +13,13 @@
 SwapchainWrap::SwapchainWrap(VkSurfaceKHR* surface, VkDevice* device, VkPhysicalDevice* physicalDevice,
                              QueueFamilyIndices* indices, GLFWwindow* window)
 {
+
+    int width = 0, height = 0;
+    while (width == 0 || height == 0) {
+        glfwWaitEvents();
+        glfwGetFramebufferSize(window, &width, &height);
+    }
+
     auto [capabilities, formats, presentModes] = checkSupport(physicalDevice, surface);
 
     chooseSwapSurfaceFormat(formats);

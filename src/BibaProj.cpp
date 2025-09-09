@@ -19,8 +19,8 @@ int main() {
     VulkanLifeCycle app{};
 
     auto container = new SceneContainter();
-    // SceneLoader::loadByDir("boombox", container);
-    SceneLoader::loadByDir("donut", container);
+    SceneLoader::loadByDir("boombox", container);
+    // SceneLoader::loadByDir("donut", container);
 
     app.fillSceneWithVulkan(container->scenes[0].get());
 
