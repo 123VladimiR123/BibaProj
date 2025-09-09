@@ -48,16 +48,10 @@ void Util::rotate(float real[4], float dual[4], const float rotation[4])
 {
     __m128 q_real = _mm_load_ps(real);
     __m128 q_dual = _mm_load_ps(dual);
-    __m128 rot = _mm_load_ps(rotation);
+    __m128 rot    = _mm_load_ps(rotation);
 
-    static const __m128 SIGN_MASK = _mm_setr_ps(-1.0f, -1.0f, -1.0f, 1.0f);
-    __m128 rot_conj = _mm_mul_ps(rot, SIGN_MASK);
-
-    __m128 temp = quatMultiply(rot, q_real);
-    q_real = quatMultiply(temp, rot_conj);
-
-    temp = quatMultiply(rot, q_dual);
-    q_dual = quatMultiply(temp, rot_conj);
+    q_real = quatMultiply(rot, q_real);
+    q_dual = quatMultiply(rot, q_dual);
 
     _mm_store_ps(real, q_real);
     _mm_store_ps(dual, q_dual);
