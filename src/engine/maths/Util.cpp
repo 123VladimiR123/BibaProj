@@ -71,20 +71,26 @@ void Util::translate(float real[4], float dual[4], const float translation[3])
 
 void Util::translateAndRotate(float real[4], float dual[4], const float rotation[4], const float translation[3])
 {
-    __m128 q_real = loadToReg(real);
-    __m128 q_dual = loadToReg(dual);
-    __m128 rot = loadToReg(rotation);
-    __m128 rot_conj = _mm_mul_ps(rot, _mm_set_ps(-1.0f, -1.0f, -1.0f, 1.0f));
+    __m128 q_real = _mm_load_ps(real);
+    __m128 q_dual = _mm_load_ps(dual);
+    __m128 rot    = _mm_load_ps(rotation);
 
-    q_real = quatMultiply(rot, quatMultiply(q_real, rot_conj));
-    q_dual = quatMultiply(rot, quatMultiply(q_dual, rot_conj));
+    q_real = quatMultiply(rot, q_real);
+    q_dual = quatMultiply(rot, q_dual);
 
-    __m128 t_quat = _mm_set_ps(0.0f, translation[2], translation[1], translation[0]);
-    __m128 half = _mm_set1_ps(0.5f);
-    q_dual = _mm_add_ps(q_dual, _mm_mul_ps(half, quatMultiply(t_quat, q_real)));
+    _mm_store_ps(real, q_real);
+    _mm_store_ps(dual, q_dual);
 
-    saveBack(real, q_real);
-    saveBack(dual, q_dual);
+    normFull(real, dual);
+
+    const float tx = 2.0f * (dual[1]*real[0] - dual[0]*real[1] - dual[2]*real[3] + dual[3]*real[2]) + translation[0];
+    const float ty = 2.0f * (dual[2]*real[0] - dual[0]*real[2] - dual[3]*real[1] + dual[1]*real[3]) + translation[1];
+    const float tz = 2.0f * (dual[3] * real[0] - dual[0] * real[3] - dual[1] * real[2] + dual[2] * real[1]) + translation[2];
+
+    dual[0] = -0.5f * (tx * real[1] + ty * real[2] + tz * real[3]);
+    dual[1] = 0.5f * (tx * real[0] + ty * real[3] - tz * real[2]);
+    dual[2] = 0.5f * (ty * real[0] + tz * real[1] - tx * real[3]);
+    dual[3] = 0.5f * (tz * real[0] + tx * real[2] - ty * real[1]);
 }
 
 void Util::normFull(float* real, float* dual)

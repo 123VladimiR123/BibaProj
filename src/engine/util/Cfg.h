@@ -10,8 +10,8 @@ public: //toDo variables are overridable getter functions with default value
     static float inline fps = 165.0f;
     static float inline deltaTime = 1.0f / fps;
 
-    static int inline windowWidth = 1200;
-    static int inline windowHeight = 675;
+    static int inline windowWidth = 1920;
+    static int inline windowHeight = 1080;
 
     static uint32_t inline selectedGPUID = 0;
 
