@@ -256,6 +256,7 @@ VkResult Renderer::renderFrame(Scene* scene, const VkDevice* device, const VkQue
 
     for (const auto& object : scene->gameObjsFlat)
     {
+        if (object->visible == false) continue;
         Mat4 model = object->getModelMatrix();
 
         for (const auto& mesh : object->primitives)

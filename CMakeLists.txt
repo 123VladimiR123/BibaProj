@@ -66,6 +66,7 @@ set(SOURCES
         src/engine/visual/DepthBuffer.cpp
         src/engine/visual/DepthBuffer.h
         src/Test.h
+        src/engine/util/EnumHandler.h
 )
 
 add_executable(BibaProj ${SOURCES})

@@ -7,7 +7,6 @@
 #include <ostream>
 
 #include "Vector3.h"
-#include "../util/Logger.h"
 
 inline __m128 Util::loadToReg(const float* q)
 {
@@ -48,7 +47,7 @@ void Util::rotate(float real[4], float dual[4], const float rotation[4])
 {
     __m128 q_real = _mm_load_ps(real);
     __m128 q_dual = _mm_load_ps(dual);
-    __m128 rot    = _mm_load_ps(rotation);
+    __m128 rot = _mm_load_ps(rotation);
 
     q_real = quatMultiply(rot, q_real);
     q_dual = quatMultiply(rot, q_dual);
@@ -59,9 +58,12 @@ void Util::rotate(float real[4], float dual[4], const float rotation[4])
 
 void Util::translate(float real[4], float dual[4], const float translation[3])
 {
-    const float tx = 2.0f * (dual[1]*real[0] - dual[0]*real[1] - dual[2]*real[3] + dual[3]*real[2]) + translation[0];
-    const float ty = 2.0f * (dual[2]*real[0] - dual[0]*real[2] - dual[3]*real[1] + dual[1]*real[3]) + translation[1];
-    const float tz = 2.0f * (dual[3] * real[0] - dual[0] * real[3] - dual[1] * real[2] + dual[2] * real[1]) + translation[2];
+    const float tx = 2.0f * (dual[1] * real[0] - dual[0] * real[1] - dual[2] * real[3] + dual[3] * real[2]) +
+        translation[0];
+    const float ty = 2.0f * (dual[2] * real[0] - dual[0] * real[2] - dual[3] * real[1] + dual[1] * real[3]) +
+        translation[1];
+    const float tz = 2.0f * (dual[3] * real[0] - dual[0] * real[3] - dual[1] * real[2] + dual[2] * real[1]) +
+        translation[2];
 
     dual[0] = -0.5f * (tx * real[1] + ty * real[2] + tz * real[3]);
     dual[1] = 0.5f * (tx * real[0] + ty * real[3] - tz * real[2]);
@@ -73,7 +75,7 @@ void Util::translateAndRotate(float real[4], float dual[4], const float rotation
 {
     __m128 q_real = _mm_load_ps(real);
     __m128 q_dual = _mm_load_ps(dual);
-    __m128 rot    = _mm_load_ps(rotation);
+    __m128 rot = _mm_load_ps(rotation);
 
     q_real = quatMultiply(rot, q_real);
     q_dual = quatMultiply(rot, q_dual);
@@ -83,9 +85,12 @@ void Util::translateAndRotate(float real[4], float dual[4], const float rotation
 
     normFull(real, dual);
 
-    const float tx = 2.0f * (dual[1]*real[0] - dual[0]*real[1] - dual[2]*real[3] + dual[3]*real[2]) + translation[0];
-    const float ty = 2.0f * (dual[2]*real[0] - dual[0]*real[2] - dual[3]*real[1] + dual[1]*real[3]) + translation[1];
-    const float tz = 2.0f * (dual[3] * real[0] - dual[0] * real[3] - dual[1] * real[2] + dual[2] * real[1]) + translation[2];
+    const float tx = 2.0f * (dual[1] * real[0] - dual[0] * real[1] - dual[2] * real[3] + dual[3] * real[2]) +
+        translation[0];
+    const float ty = 2.0f * (dual[2] * real[0] - dual[0] * real[2] - dual[3] * real[1] + dual[1] * real[3]) +
+        translation[1];
+    const float tz = 2.0f * (dual[3] * real[0] - dual[0] * real[3] - dual[1] * real[2] + dual[2] * real[1]) +
+        translation[2];
 
     dual[0] = -0.5f * (tx * real[1] + ty * real[2] + tz * real[3]);
     dual[1] = 0.5f * (tx * real[0] + ty * real[3] - tz * real[2]);
@@ -201,8 +206,8 @@ Mat4 Util::makeViewMatrix(const float* dual, const float* real)
 {
     Mat4 mat{};
 
-    const float tx = 2.0f * (dual[1]*real[0] - dual[0]*real[1] - dual[2]*real[3] + dual[3]*real[2]);
-    const float ty = 2.0f * (dual[2]*real[0] - dual[0]*real[2] - dual[3]*real[1] + dual[1]*real[3]);
+    const float tx = 2.0f * (dual[1] * real[0] - dual[0] * real[1] - dual[2] * real[3] + dual[3] * real[2]);
+    const float ty = 2.0f * (dual[2] * real[0] - dual[0] * real[2] - dual[3] * real[1] + dual[1] * real[3]);
     const float tz = 2.0f * (dual[3] * real[0] - dual[0] * real[3] - dual[1] * real[2] + dual[2] * real[1]);
 
     const float w = real[0];
@@ -233,13 +238,19 @@ Mat4 Util::makeViewMatrix(const float* dual, const float* real)
     R[2][1] = 2.0f * (yz - wx);
     R[2][2] = 1.0f - 2.0f * (xx + yy);
 
-    mat(0, 0) = R[0][0]; mat(1, 0) = R[0][1]; mat(2, 0) = R[0][2];
-    mat(0, 1) = R[1][0]; mat(1, 1) = R[1][1]; mat(2, 1) = R[1][2];
-    mat(0, 2) = R[2][0]; mat(1, 2) = R[2][1]; mat(2, 2) = R[2][2];
+    mat(0, 0) = R[0][0];
+    mat(1, 0) = R[0][1];
+    mat(2, 0) = R[0][2];
+    mat(0, 1) = R[1][0];
+    mat(1, 1) = R[1][1];
+    mat(2, 1) = R[1][2];
+    mat(0, 2) = R[2][0];
+    mat(1, 2) = R[2][1];
+    mat(2, 2) = R[2][2];
 
-    mat(0, 3) = -(R[0][0]*tx + R[0][1]*ty + R[0][2]*tz);
-    mat(1, 3) = -(R[1][0]*tx + R[1][1]*ty + R[1][2]*tz);
-    mat(2, 3) = -(R[2][0]*tx + R[2][1]*ty + R[2][2]*tz);
+    mat(0, 3) = -(R[0][0] * tx + R[0][1] * ty + R[0][2] * tz);
+    mat(1, 3) = -(R[1][0] * tx + R[1][1] * ty + R[1][2] * tz);
+    mat(2, 3) = -(R[2][0] * tx + R[2][1] * ty + R[2][2] * tz);
 
     std::swap(mat(1, 0), mat(0, 1));
     std::swap(mat(2, 0), mat(0, 2));
@@ -271,7 +282,7 @@ Mat4 Util::makeProjMatrixOrtographic(const float xmag, const float ymag, const f
         1.0f / xmag, 0.0f, 0.0f, 0.0f,
         0.0f, -1.0f / ymag, 0.0f, 0.0f,
         0.0f, 0.0f, -1.0f / range, -1.0f,
-        0.0f, 0.0f, - znear / range, 0.0f
+        0.0f, 0.0f, -znear / range, 0.0f
     };
 
     return Mat4(m);

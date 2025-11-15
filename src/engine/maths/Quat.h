@@ -17,6 +17,7 @@ public:
     void setReal(const float input[4]);
 
     [[nodiscard]] const float (& getReal() const)[4];
+    [[nodiscard]] float* getRealPtr();
 
     float operator[](const int idx) const
     {

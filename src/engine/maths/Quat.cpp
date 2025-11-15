@@ -14,3 +14,8 @@ const float (& Quat::getReal() const)[4]
 {
     return this->real;
 }
+
+float* Quat::getRealPtr()
+{
+    return this->real;
+}

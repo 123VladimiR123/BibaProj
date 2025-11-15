@@ -55,6 +55,7 @@ void Transform::moveAndRotate(const Quat& quatIn, const float translation[3])
 {
     if (!this->quat) return;
     this->quat->translateAndRotate(quatIn, translation);
+    this->quat->normFull();
     this->dirty = true;
 }
 
@@ -62,6 +63,7 @@ void Transform::move(const float translation[3])
 {
     if (!this->quat.has_value()) return;
     this->quat->translate(translation);
+    this->quat->normFull();
     this->dirty = true;
 }
 
@@ -69,7 +71,13 @@ void Transform::rotate(const Quat& quatIn)
 {
     if (!this->quat) return;
     this->quat->rotate(quatIn);
+    this->quat->normFull();
     this->dirty = true;
+}
+
+void Transform::setQuat(const DualQuat& quatIn)
+{
+    this->quat.emplace(quatIn);
 }
 
 void Transform::emplaceFromMat4()

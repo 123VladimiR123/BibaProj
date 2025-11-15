@@ -390,6 +390,17 @@ void SceneLoader::parseGameObjects(
             if (node.mesh >= 0 && node.mesh < meshes.size())
                 obj->primitives = meshes[node.mesh];
             obj->nodeIdx = i;
+            if (!node.scale.empty())
+            {
+                obj->transform->scale.emplace(Vector3(node.scale[0], node.scale[1], node.scale[2]));
+            }
+            if (model->nodes[i].extras.Type() != tinygltf::NULL_TYPE)
+            {
+                if (node.extras.Has("markable")) {
+                    obj->markable = node.extras.Get("markable").Get<int>();
+                }
+            }
+
             allGameObjs.push_back(obj);
         }
     }

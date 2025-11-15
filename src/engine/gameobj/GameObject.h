@@ -19,10 +19,10 @@ public:
     std::shared_ptr<GameObject> parent;
     std::vector<std::shared_ptr<GameObject>> children;
 
+    uint_fast8_t markable = 0;
+
     bool visible = true;
     uint32_t nodeIdx{};
-
-    //todo make mtrx getter by multiply transform.getMatrix() and parent.getMatrix()
 
     Mat4 getModelMatrix() const
     {
@@ -32,12 +32,30 @@ public:
     }
 
     GameObject() = default;
-    GameObject(GameObject&) = delete;
+    GameObject(const GameObject&);
 
     GameObject(GameObject&&) noexcept = default;
 
-    GameObject& operator=(GameObject&) = delete;
+    GameObject& operator=(GameObject&) = default;
     GameObject& operator=(GameObject&&) noexcept = default;
 };
+
+inline GameObject::GameObject(const GameObject& other)
+{
+    if (other.transform) {
+        transform = std::make_unique<Transform>(*other.transform);
+    } else {
+        transform = nullptr;
+    }
+
+    primitives = other.primitives;
+
+    parent = other.parent;
+    children = other.children;
+
+    markable = other.markable;
+    visible  = other.visible;
+    nodeIdx  = other.nodeIdx;
+}
 
 #endif //GAMEOBJECT_H

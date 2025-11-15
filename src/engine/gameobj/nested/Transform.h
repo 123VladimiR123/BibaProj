@@ -16,7 +16,13 @@ public:
     std::optional<Vector3> scale;
 
     Transform();
-    Transform(Transform&) = delete;
+    Transform(const Transform& other)
+    {
+        dirty = true;
+        mtrx = Mat4{};
+        quat  = other.quat;
+        scale = other.scale;
+    }
 
     Transform(Transform&& other) noexcept
         : mtrx(other.mtrx),
@@ -50,8 +56,9 @@ public:
     void move(const float translation[3]);
 
     void rotate(const Quat& quatIn);
-
     void moveAndRotate(const Quat& quatIn, const float translation[3]);
+
+    void setQuat(const DualQuat& quatIn);
 
     void emplaceFromMat4();
 
