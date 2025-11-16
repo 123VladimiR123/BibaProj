@@ -1,7 +1,5 @@
 #include "Transform.h"
 
-#include "../../visual/util/BufferUtil.h"
-
 Transform::Transform()
 {
     this->dirty = false;
@@ -55,7 +53,6 @@ void Transform::moveAndRotate(const Quat& quatIn, const float translation[3])
 {
     if (!this->quat) return;
     this->quat->translateAndRotate(quatIn, translation);
-    this->quat->normFull();
     this->dirty = true;
 }
 
@@ -63,7 +60,6 @@ void Transform::move(const float translation[3])
 {
     if (!this->quat.has_value()) return;
     this->quat->translate(translation);
-    this->quat->normFull();
     this->dirty = true;
 }
 
@@ -71,7 +67,6 @@ void Transform::rotate(const Quat& quatIn)
 {
     if (!this->quat) return;
     this->quat->rotate(quatIn);
-    this->quat->normFull();
     this->dirty = true;
 }
 

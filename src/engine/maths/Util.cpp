@@ -8,52 +8,23 @@
 
 #include "Vector3.h"
 
-inline __m128 Util::loadToReg(const float* q)
+//modfies the first value
+inline void quatMultiply(float* a, const float* b)
 {
-    return _mm_load_ps(q);
+    float temp[4]
+    {
+        a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+        a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+        a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+        a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
+    };
+    a[0] = temp[0]; a[1] = temp[1]; a[2] = temp[2]; a[3] = temp[3];
 }
 
-inline void Util::saveBack(float* q, __m128 reg)
-{
-    _mm_store_ps(q, reg);
-}
-
-inline __m128 quatMultiply(__m128 a, __m128 b)
-{
-    __m128 a_wwww = _mm_shuffle_ps(a, a, _MM_SHUFFLE(0, 0, 0, 0));
-    __m128 a_xxxx = _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1));
-    __m128 a_yyyy = _mm_shuffle_ps(a, a, _MM_SHUFFLE(2, 2, 2, 2));
-    __m128 a_zzzz = _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 3, 3, 3));
-
-    __m128 result = _mm_mul_ps(a_wwww, b); // a.w * b
-
-    __m128 temp = _mm_mul_ps(a_xxxx, _mm_shuffle_ps(b, b, _MM_SHUFFLE(1, 0, 3, 2)));
-    temp = _mm_mul_ps(temp, _mm_setr_ps(1.0f, 1.0f, -1.0f, 1.0f));
-    result = _mm_add_ps(result, temp);
-
-    temp = _mm_mul_ps(a_yyyy, _mm_shuffle_ps(b, b, _MM_SHUFFLE(2, 3, 0, 1)));
-    temp = _mm_mul_ps(temp, _mm_setr_ps(1.0f, -1.0f, 1.0f, 1.0f));
-    result = _mm_add_ps(result, temp);
-
-    temp = _mm_mul_ps(a_zzzz, _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 2, 1, 0)));
-    temp = _mm_mul_ps(temp, _mm_setr_ps(-1.0f, 1.0f, 1.0f, 1.0f));
-    result = _mm_add_ps(result, temp);
-
-    return result;
-}
-
-//toDo not working
 void Util::rotate(float real[4], float dual[4], const float rotation[4])
 {
-    __m128 q_real = _mm_load_ps(real);
-    __m128 q_dual = _mm_load_ps(dual);
-    __m128 rot = _mm_load_ps(rotation);
-
-    q_real = quatMultiply(rot, q_real);
-    q_dual = quatMultiply(rot, q_dual);
-
-    _mm_store_ps(real, q_real);
-    _mm_store_ps(dual, q_dual);
+    quatMultiply(real, rotation);
+    quatMultiply(dual, rotation);
 }
 
 void Util::translate(float real[4], float dual[4], const float translation[3])
@@ -73,29 +44,8 @@ void Util::translate(float real[4], float dual[4], const float translation[3])
 
 void Util::translateAndRotate(float real[4], float dual[4], const float rotation[4], const float translation[3])
 {
-    __m128 q_real = _mm_load_ps(real);
-    __m128 q_dual = _mm_load_ps(dual);
-    __m128 rot = _mm_load_ps(rotation);
-
-    q_real = quatMultiply(rot, q_real);
-    q_dual = quatMultiply(rot, q_dual);
-
-    _mm_store_ps(real, q_real);
-    _mm_store_ps(dual, q_dual);
-
-    normFull(real, dual);
-
-    const float tx = 2.0f * (dual[1] * real[0] - dual[0] * real[1] - dual[2] * real[3] + dual[3] * real[2]) +
-        translation[0];
-    const float ty = 2.0f * (dual[2] * real[0] - dual[0] * real[2] - dual[3] * real[1] + dual[1] * real[3]) +
-        translation[1];
-    const float tz = 2.0f * (dual[3] * real[0] - dual[0] * real[3] - dual[1] * real[2] + dual[2] * real[1]) +
-        translation[2];
-
-    dual[0] = -0.5f * (tx * real[1] + ty * real[2] + tz * real[3]);
-    dual[1] = 0.5f * (tx * real[0] + ty * real[3] - tz * real[2]);
-    dual[2] = 0.5f * (ty * real[0] + tz * real[1] - tx * real[3]);
-    dual[3] = 0.5f * (tz * real[0] + tx * real[2] - ty * real[1]);
+    rotate(real, dual, rotation);
+    translate(real, dual, translation);
 }
 
 void Util::normFull(float* real, float* dual)

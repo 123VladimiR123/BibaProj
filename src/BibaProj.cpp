@@ -24,7 +24,6 @@ int main()
     VulkanLifeCycle app{};
 
     auto container = new SceneContainter();
-    // SceneLoader::loadByDir("boombox", container);
     SceneLoader::loadByDir("donut-4", container);
 
     auto scene = container->scenes[0].get();
@@ -48,8 +47,7 @@ int main()
     while (!glfwWindowShouldClose(app.getWindow()))
     {
         app.render(scene);
-        // scene->gameObjsRoot[0]->transform->moveAndRotate(rot, std::array{0.0f, 0.0f, 0.0f}.data());
-        scene->gameObjsRoot[0]->transform->rotate(rot);
+        scene->gameObjsRoot[0]->transform->moveAndRotate(rot, std::array{0.0f, 0.00001f, 0.0f}.data());
         if (marker != nullptr && counter % 100 == 0)
         {
             GameObject next = *marker;
@@ -60,7 +58,6 @@ int main()
         }
         glfwPollEvents();
         counter++;
-        // std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<uint32_t>(1000 * Cfg::deltaTime)));
     }
 
     app.closeScene(container->scenes[0].get());
