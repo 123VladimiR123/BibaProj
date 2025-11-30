@@ -24,10 +24,10 @@ public:
     bool visible = true;
     uint32_t nodeIdx{};
 
-    Mat4 getModelMatrix() const
+    Mat4 getModelMatrix() const //todo bottleneck?
     {
         if (parent != nullptr)
-            return parent->getModelMatrix() * transform->getMatrix();
+            return Util::multiply(parent->getModelMatrix(), transform->getMatrix());
         return transform->getMatrix();
     }
 

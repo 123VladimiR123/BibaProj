@@ -30,6 +30,8 @@ public:
 
     static void setTranslate(const float translation[3], const float real[4], float dual[4]);
 
+    static Mat4 multiply(const Mat4& first, const Mat4& second);
+
     static void translate(float real[4], float dual[4], const float translation[3]);
 
     static void translateAndRotate(float real[4], float dual[4], const float rotation[4], const float translation[3]);

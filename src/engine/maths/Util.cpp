@@ -4,6 +4,7 @@
 #include <smmintrin.h>
 
 #include <cmath>
+#include <immintrin.h>
 #include <ostream>
 
 #include "Vector3.h"
@@ -288,4 +289,47 @@ void Util::setTranslate(const float translation[3], const float real[4], float d
     result = _mm_sub_ps(result, temp);
 
     _mm_store_ps(dual, result);
+}
+
+Mat4 Util::multiply(const Mat4& first, const Mat4& second)
+{
+    Mat4 result;
+
+    __m128 a0 = _mm_loadu_ps(first.data + 0);
+    __m128 a1 = _mm_loadu_ps(first.data + 4);
+    __m128 a2 = _mm_loadu_ps(first.data + 8);
+    __m128 a3 = _mm_loadu_ps(first.data + 12);
+
+    __m128 b0 = _mm_loadu_ps(second.data + 0);
+    __m128 b1 = _mm_loadu_ps(second.data + 4);
+    __m128 b2 = _mm_loadu_ps(second.data + 8);
+    __m128 b3 = _mm_loadu_ps(second.data + 12);
+
+    __m128 r;
+
+    r = _mm_mul_ps (a0, _mm_shuffle_ps(b0, b0, _MM_SHUFFLE(0,0,0,0)));  // ? b00
+    r = _mm_fmadd_ps(a1, _mm_shuffle_ps(b0, b0, _MM_SHUFFLE(1,1,1,1)), r);
+    r = _mm_fmadd_ps(a2, _mm_shuffle_ps(b0, b0, _MM_SHUFFLE(2,2,2,2)), r);
+    r = _mm_fmadd_ps(a3, _mm_shuffle_ps(b0, b0, _MM_SHUFFLE(3,3,3,3)), r);
+    _mm_storeu_ps(result.data + 0, r);
+
+    r = _mm_mul_ps (a0, _mm_shuffle_ps(b1, b1, _MM_SHUFFLE(0,0,0,0)));
+    r = _mm_fmadd_ps(a1, _mm_shuffle_ps(b1, b1, _MM_SHUFFLE(1,1,1,1)), r);
+    r = _mm_fmadd_ps(a2, _mm_shuffle_ps(b1, b1, _MM_SHUFFLE(2,2,2,2)), r);
+    r = _mm_fmadd_ps(a3, _mm_shuffle_ps(b1, b1, _MM_SHUFFLE(3,3,3,3)), r);
+    _mm_storeu_ps(result.data + 4, r);
+
+    r = _mm_mul_ps (a0, _mm_shuffle_ps(b2, b2, _MM_SHUFFLE(0,0,0,0)));
+    r = _mm_fmadd_ps(a1, _mm_shuffle_ps(b2, b2, _MM_SHUFFLE(1,1,1,1)), r);
+    r = _mm_fmadd_ps(a2, _mm_shuffle_ps(b2, b2, _MM_SHUFFLE(2,2,2,2)), r);
+    r = _mm_fmadd_ps(a3, _mm_shuffle_ps(b2, b2, _MM_SHUFFLE(3,3,3,3)), r);
+    _mm_storeu_ps(result.data + 8, r);
+
+    r = _mm_mul_ps (a0, _mm_shuffle_ps(b3, b3, _MM_SHUFFLE(0,0,0,0)));
+    r = _mm_fmadd_ps(a1, _mm_shuffle_ps(b3, b3, _MM_SHUFFLE(1,1,1,1)), r);
+    r = _mm_fmadd_ps(a2, _mm_shuffle_ps(b3, b3, _MM_SHUFFLE(2,2,2,2)), r);
+    r = _mm_fmadd_ps(a3, _mm_shuffle_ps(b3, b3, _MM_SHUFFLE(3,3,3,3)), r);
+    _mm_storeu_ps(result.data + 12, r);
+
+    return result;
 }

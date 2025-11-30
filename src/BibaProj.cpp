@@ -24,7 +24,7 @@ int main()
     VulkanLifeCycle app{};
 
     auto container = new SceneContainter();
-    SceneLoader::loadByDir("donut-4", container);
+    SceneLoader::loadByDir("mass-donut", container);
 
     auto scene = container->scenes[0].get();
     app.fillSceneWithVulkan(scene);
@@ -34,7 +34,7 @@ int main()
     for (const auto obj : scene->gameObjsFlat)
         if (obj->markable == MARKABLE_MARKER)
         {
-            marker = obj;
+            // marker = obj;
         }
         else
         {
@@ -47,7 +47,10 @@ int main()
     while (!glfwWindowShouldClose(app.getWindow()))
     {
         app.render(scene);
-        scene->gameObjsRoot[0]->transform->moveAndRotate(rot, std::array{0.0f, 0.00001f, 0.0f}.data());
+
+        for (const auto& obj: scene->gameObjsRoot)
+            obj->transform->moveAndRotate(rot, std::array{0.0f, 0.00001f, 0.0f}.data());
+
         if (marker != nullptr && counter % 100 == 0)
         {
             GameObject next = *marker;

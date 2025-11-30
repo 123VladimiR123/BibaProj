@@ -26,14 +26,17 @@ public:
 
     void translate(const float translation[3]) {
         Util::translate(this->real, this->dual, translation);
+        normFull();
     }
 
     void rotate(const Quat &quat) {
         Util::rotate(this->real, this->dual, quat.getReal());
+        normFull();
     }
 
     void translateAndRotate(const Quat &quat, const float translation[3]) {
         Util::translateAndRotate(this->real, this->dual, quat.getReal(), translation);
+        normFull();
     }
 
     [[nodiscard]] float (&getDual())[4] {
