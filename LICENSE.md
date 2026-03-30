@@ -1,6 +1,6 @@
-MIT License
+# MIT License
 
-Copyright (c) 2025 123VladimiR123
+Copyright (c) 2025 Kubasov Vladimir
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+# Лицензии сторонних библиотек
+Подробная информация о лицензиях всех используемых библиотек находится в файле [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
