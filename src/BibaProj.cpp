@@ -12,58 +12,29 @@
 std::atomic keepRunning{true};
 Quat rot{
     std::array{
-        0.9999995f,
-        0.0005f,
-        0.0005f,
+        0.999999f,
+        0.0f,
+        0.0008f,
         0.0f
     }.data()
 };
 
 int main()
 {
-    testRun();
     VulkanLifeCycle app{};
 
     auto container = new SceneContainter();
-    SceneLoader::loadByDir("donut-4", container);
+    SceneLoader::loadByDir("boombox", container);
 
     auto scene = container->scenes[0].get();
     app.fillSceneWithVulkan(scene);
 
-    std::shared_ptr<GameObject> marker = nullptr;
-    std::vector<std::shared_ptr<GameObject>> nonMarkers{};
-    for (const auto& obj : scene->gameObjsFlat)
-        if (obj->markable == MARKABLE_MARKER)
-        {
-            marker = obj;
-        }
-        else
-        {
-            obj->visible = false;
-            if (obj->markable == MARKABLE_TARGET)
-                nonMarkers.push_back(obj);
-        }
-    scene->gameObjsFlat = nonMarkers;
-
-    uint32_t counter{};
     while (!glfwWindowShouldClose(app.getWindow()))
     {
         app.render(scene);
-
-        for (const auto& obj: scene->gameObjsRoot)
-            if (obj->markable != MARKABLE_MARKER)
-                obj->transform->moveAndRotate(rot, std::array{0.0001f, 0.00001f, 0.0f}.data());
-
-        if (marker != nullptr && counter % 100 == 0)
-        {
-            GameObject next = *marker;
-            std::shared_ptr<GameObject> nextShared = std::make_shared<GameObject>(next);
-            nextShared->transform->setQuat(scene->gameObjsRoot[0]->transform->getQuat().value());
-            scene->gameObjsRoot.push_back(nextShared);
-            scene->gameObjsFlat.push_back(nextShared);
-        }
         glfwPollEvents();
-        counter++;
+        for (const auto& obj : scene->gameObjsRoot)
+            obj->transform->rotate(rot);
     }
 
     app.closeScene(container->scenes[0].get());
