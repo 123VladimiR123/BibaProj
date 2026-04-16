@@ -1,5 +1,6 @@
 ﻿#include "BibaProj.h"
 
+#include <random>
 #include <thread>
 
 #include "Test.h"
@@ -11,8 +12,8 @@
 std::atomic keepRunning{true};
 Quat rot{
     std::array{
-        0.99999975f,
-        0.0f,
+        0.9999995f,
+        0.0005f,
         0.0005f,
         0.0f
     }.data()
@@ -24,22 +25,23 @@ int main()
     VulkanLifeCycle app{};
 
     auto container = new SceneContainter();
-    SceneLoader::loadByDir("mass-donut", container);
+    SceneLoader::loadByDir("donut-4", container);
 
     auto scene = container->scenes[0].get();
     app.fillSceneWithVulkan(scene);
 
     std::shared_ptr<GameObject> marker = nullptr;
     std::vector<std::shared_ptr<GameObject>> nonMarkers{};
-    for (const auto obj : scene->gameObjsFlat)
+    for (const auto& obj : scene->gameObjsFlat)
         if (obj->markable == MARKABLE_MARKER)
         {
-            // marker = obj;
+            marker = obj;
         }
         else
         {
-            // obj->visible = false;
-            nonMarkers.push_back(obj);
+            obj->visible = false;
+            if (obj->markable == MARKABLE_TARGET)
+                nonMarkers.push_back(obj);
         }
     scene->gameObjsFlat = nonMarkers;
 
@@ -49,7 +51,8 @@ int main()
         app.render(scene);
 
         for (const auto& obj: scene->gameObjsRoot)
-            obj->transform->moveAndRotate(rot, std::array{0.0f, 0.00001f, 0.0f}.data());
+            if (obj->markable != MARKABLE_MARKER)
+                obj->transform->moveAndRotate(rot, std::array{0.0001f, 0.00001f, 0.0f}.data());
 
         if (marker != nullptr && counter % 100 == 0)
         {

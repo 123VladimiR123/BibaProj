@@ -20,13 +20,12 @@ struct SamplerInfo {
 class Texture {
 public:
     std::string name;
+
     uint32_t width = 0;
     uint32_t height = 0;
     uint32_t channels = 4;
 
     VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-
-    bool isSRGB = true;
 
     SamplerInfo samplerInfo;
 

@@ -18,9 +18,6 @@ struct MeshBufferInfo
 
     VkDeviceSize vertexByteOffset{};
     VkDeviceSize indexByteOffset{};
-
-    uint32_t firstIndex{};
-    int32_t vertexOffset{};
 };
 
 class MeshPrimitive {

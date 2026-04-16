@@ -54,7 +54,6 @@ std::vector<std::shared_ptr<Texture>> SceneLoader::parseTextures(const tinygltf:
             else texture->format = VK_FORMAT_R16G16B16A16_UNORM;
         }
 
-        texture->isSRGB = true;
         texture->pixels = img.image;
 
         if (tex.sampler >= 0 && tex.sampler < static_cast<int>(model->samplers.size()))
@@ -298,13 +297,6 @@ std::vector<std::shared_ptr<Material>> SceneLoader::parseMaterials(
         material->normalTexture = checkNSet(mat.normalTexture.index);
         material->occlusionTexture = checkNSet(mat.occlusionTexture.index);
         material->emissiveTexture = checkNSet(mat.emissiveTexture.index);
-
-        if (material->normalTexture != nullptr)
-            material->normalTexture->isSRGB = false;
-        if (material->metallicRoughnessTexture != nullptr)
-            material->metallicRoughnessTexture->isSRGB = false;
-        if (material->occlusionTexture != nullptr)
-            material->occlusionTexture->isSRGB = false;
 
         result.push_back(material);
     }

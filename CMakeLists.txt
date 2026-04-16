@@ -73,7 +73,7 @@ add_executable(BibaProj ${SOURCES})
 
 #debug output
 #add_compile_definitions(ENGINE_DEBUG_MODE_VALIDATION)
-add_compile_definitions(ENGINE_DEBUG_MODE_LOGGING)
+#add_compile_definitions(ENGINE_DEBUG_MODE_LOGGING)
 
 target_compile_options(BibaProj PRIVATE
         -mfma

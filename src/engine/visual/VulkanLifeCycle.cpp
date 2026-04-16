@@ -45,7 +45,7 @@ VulkanLifeCycle::VulkanLifeCycle()
     showExtensions();
 #endif
 
-    VulkanContext::reg(new SwapchainResourceManager);
+    VulkanContext::reg(new SwapchainResourceManager());
     VulkanContext::reg(new InstanceWrap());
     VulkanContext::reg(new WindowWrap());
     VulkanContext::reg(new SurfaceWrap(VulkanContext::instance()->get(), VulkanContext::window()->get()));

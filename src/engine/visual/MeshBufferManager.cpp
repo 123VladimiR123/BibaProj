@@ -85,9 +85,6 @@ MeshBufferManager::MeshBufferManager(const std::vector<std::shared_ptr<MeshPrimi
         info.vertexByteOffset = vertexByteOffset;
         info.indexByteOffset = indexByteOffset;
 
-        info.firstIndex = indexObjOffset;
-        info.vertexOffset = static_cast<int32_t>(vertexObjOffset);
-
         mesh->info = info;
 
         vertexByteOffset += sizeof(Vertex) * mesh->vertices.size();
